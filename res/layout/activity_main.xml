@@ -102,7 +102,7 @@
         <EditText 
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:inputType="textCapCharacters"
+            android:inputType="text"
             android:hint="@string/value_hint"
             android:id="@+id/sendValue"
             android:enabled="false"/>
@@ -114,6 +114,45 @@
             android:text="@string/send_label"
             android:layout_gravity="center_horizontal"
             android:enabled="false" />
+        
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
+        	<Button
+        	    android:id="@+id/startButton"
+        	    android:layout_width="match_parent"
+        	    android:layout_height="wrap_content"
+        	    android:enabled="false"
+        	    android:layout_weight="1"
+        	    android:text="@string/value_button_b" />
+        
+         <Button
+             android:id="@+id/stopButton"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:enabled="false"
+             android:layout_weight="1"
+             android:text="@string/value_button_s" />
+            
+        </LinearLayout>
+        
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/receiving_label"
+            android:id="@+id/receivingLabel"
+            android:visibility="invisible" />
+        
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:indeterminate="true" 
+            android:visibility="invisible"/>
         
     </LinearLayout>
 </ScrollView>

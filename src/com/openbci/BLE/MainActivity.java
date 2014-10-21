@@ -1,6 +1,10 @@
 package com.openbci.BLE;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.Locale;
 import java.util.UUID;
 
 import android.app.Activity;
@@ -17,11 +21,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 public class MainActivity extends Activity implements LeScanCallback {
@@ -32,7 +38,14 @@ public class MainActivity extends Activity implements LeScanCallback {
 	final private static int STATE_DISCONNECTED = 2;
 	final private static int STATE_CONNECTING = 3;
 	final private static int STATE_CONNECTED = 4;
-
+	final private static byte[] START = {'b'};
+	final private static byte[] STOP = {'s'};
+	
+	private String mFilenamePrefix = "openbci";
+	private String mExtention = ".txt";
+	private String mFilenameSuffix = "";
+	private String mFilename = "openbci.txt"; //Default Filename
+	
 	private int mBluetoothState;
 	private boolean mScanStarted;
 	private boolean mScanning;
@@ -49,7 +62,11 @@ public class MainActivity extends Activity implements LeScanCallback {
 	private Button mConnectButton;
 	private EditText mCommandText;
 	private Button mSendButton;
-
+	private Button mStartButton;
+	private Button mStopButton;
+	private ProgressBar mProgressBar;
+	private TextView mReceiving;
+	
 	private final BroadcastReceiver bluetoothStateReceiver = new BroadcastReceiver() {
 
 		@Override
@@ -87,11 +104,11 @@ public class MainActivity extends Activity implements LeScanCallback {
 			} else if (RFduinoService.ACTION_DATA_AVAILABLE.equals(action)) {
 				byte[] data = intent
 						.getByteArrayExtra(RFduinoService.EXTRA_DATA);
-				// displayReceived(data);
 				byte[] packetData = Arrays.copyOfRange(data, 1, data.length);
-				int packetNumber = Byte.valueOf(data[0]).intValue();
-				Log.i(TAG, "RFDuino Data: " +packetNumber+ ": " +HexAsciiHelper.bytesToAsciiMaybe(packetData));
-				new SaveBytesToFile().execute(data);
+				int packetNumber = data[0] & 0xFF;
+				Log.i(TAG, "RFduino Data: " +packetNumber + ": " +FormatDataForFile.convertBytesToHex(packetData));
+				byte[][] dataForAsyncTask = {mFilename.getBytes(), data};
+				new SaveBytesToFile().execute(dataForAsyncTask);
 			}
 
 		}
@@ -122,6 +139,7 @@ public class MainActivity extends Activity implements LeScanCallback {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
+		mFilename = getFileNameForSession();
 		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
 		// Bluetooth
@@ -225,6 +243,33 @@ public class MainActivity extends Activity implements LeScanCallback {
 						.getBytes());
 			}
 		});
+		
+		mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
+		mReceiving = (TextView) findViewById(R.id.receivingLabel);
+		mStartButton = (Button) findViewById(R.id.startButton);
+		mStartButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				mRFduinoService.send(START);
+				mReceiving.setVisibility(View.VISIBLE);
+				mProgressBar.setVisibility(View.VISIBLE);
+			}
+			
+		});
+		
+		mStopButton = (Button) findViewById(R.id.stopButton);
+		mStopButton.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				mReceiving.setVisibility(View.INVISIBLE);
+				mProgressBar.setVisibility(View.INVISIBLE);
+				mRFduinoService.send(STOP);
+			}
+		});
+		
+		//Create the proper file structure for current session
+		
 	}
 
 	protected void onStart() {
@@ -249,6 +294,12 @@ public class MainActivity extends Activity implements LeScanCallback {
 		unregisterReceiver(scanModeReceiver);
 		unregisterReceiver(bluetoothStateReceiver);
 		unregisterReceiver(rfduinoReceiver);
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		mFilename = getFileNameForSession();
 	}
 
 	private void upgradeState(int newState) {
@@ -305,17 +356,21 @@ public class MainActivity extends Activity implements LeScanCallback {
 
 		mCommandText.setEnabled(connected);
 		mSendButton.setEnabled(connected);
+		mStartButton.setEnabled(connected);
+		mStopButton.setEnabled(connected);
 
 	}
 
-	private void displayReceived(byte[] data) {
-		AlertDialog.Builder receivedAlert = new Builder(MainActivity.this);
-		String asciiData = HexAsciiHelper.bytesToAsciiMaybe(data);
-		receivedAlert.setTitle("Received:");
-		receivedAlert.setMessage(asciiData);
-		receivedAlert.show();
+	private String getFileNameForSession(){
+		File directory = new File(Environment.getExternalStorageDirectory(),"OpenBCI");
+		directory.mkdir();
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.getDefault());
+		Date now = new Date();
+		mFilenameSuffix = formatter.format(now);
+		String filename = mFilenamePrefix+formatter.format(now)+mExtention;
+		return filename;
 	}
-
+	
 	@Override
 	public void onLeScan(BluetoothDevice device, final int rssi,
 			final byte[] scanRecord) {

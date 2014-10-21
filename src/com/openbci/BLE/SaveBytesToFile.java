@@ -11,20 +11,30 @@ import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
 
-public class SaveBytesToFile extends AsyncTask<byte[], Integer, Integer> {
+public class SaveBytesToFile extends AsyncTask<byte[], Void, Void> {
+	
 
 	@Override
-	protected Integer doInBackground(byte[]... arduinoData) {
-		byte[] packet = arduinoData[0];
+	protected Void doInBackground(byte[]... arduinoData) {
+		//Get file name for current session
+		String filename = new String(arduinoData[0]);
+		//Store sample byte
+		byte[] packet = arduinoData[1];
+		//Store packet data
 		byte[] packetData = Arrays.copyOfRange(packet, 1, packet.length);
-		String packetNumber = Byte.valueOf(packet[0]).toString();
-		File file = new File(Environment.getExternalStorageDirectory(),"openbci.txt");
+		//Get the sample number
+		int pNumber = packet[0] & 0xFF;
+		String packetNumber = Integer.valueOf(pNumber).toString();
+		//Create the file for the current session
+		File directory = new File(Environment.getExternalStorageDirectory(),"OpenBCI");
+		File file = new File(directory,filename);
 		DataOutputStream dos;
 		try {
 			dos = new DataOutputStream(new FileOutputStream(file.getPath(),true));
 			dos.writeChars(packetNumber);
-			dos.writeChars(": ");
-			dos.write(packetData);
+			//dos.writeChars(": ");
+			dos.writeChars(",");
+			dos.writeChars(FormatDataForFile.convertBytesToHex(packetData));
 			dos.write(System.getProperty("line.separator").getBytes());
 			dos.close();
 		} catch (FileNotFoundException e) {
