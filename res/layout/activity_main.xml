@@ -154,5 +154,14 @@
             android:indeterminate="true" 
             android:visibility="invisible"/>
         
+        
+         <Button
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/view_file_label"
+            android:id="@+id/viewFileButton"
+            android:layout_gravity="center_horizontal"
+            android:enabled="false" />
+         
     </LinearLayout>
 </ScrollView>

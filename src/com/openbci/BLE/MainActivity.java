@@ -20,6 +20,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
@@ -66,6 +67,10 @@ public class MainActivity extends Activity implements LeScanCallback {
 	private Button mStopButton;
 	private ProgressBar mProgressBar;
 	private TextView mReceiving;
+	private Button mViewFileButton;
+	
+	private Intent openTextFileIntent = new Intent(Intent.ACTION_VIEW);
+	private File directory = new File(Environment.getExternalStorageDirectory(),"OpenBCI");
 	
 	private final BroadcastReceiver bluetoothStateReceiver = new BroadcastReceiver() {
 
@@ -247,6 +252,8 @@ public class MainActivity extends Activity implements LeScanCallback {
 		mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
 		mReceiving = (TextView) findViewById(R.id.receivingLabel);
 		mStartButton = (Button) findViewById(R.id.startButton);
+		mViewFileButton = (Button) findViewById(R.id.viewFileButton);
+		
 		mStartButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -265,11 +272,20 @@ public class MainActivity extends Activity implements LeScanCallback {
 				mReceiving.setVisibility(View.INVISIBLE);
 				mProgressBar.setVisibility(View.INVISIBLE);
 				mRFduinoService.send(STOP);
+				mViewFileButton.setEnabled(true);
 			}
 		});
 		
-		//Create the proper file structure for current session
-		
+		mViewFileButton.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				Uri uri = Uri.fromFile(new File(directory, mFilename));
+				openTextFileIntent.setDataAndType(uri, "text/plain");
+				//openTextFileIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); 
+				startActivity(openTextFileIntent);
+			}
+		});
 	}
 
 	protected void onStart() {
@@ -362,7 +378,6 @@ public class MainActivity extends Activity implements LeScanCallback {
 	}
 
 	private String getFileNameForSession(){
-		File directory = new File(Environment.getExternalStorageDirectory(),"OpenBCI");
 		directory.mkdir();
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.getDefault());
 		Date now = new Date();

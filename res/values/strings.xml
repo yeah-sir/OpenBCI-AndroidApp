@@ -17,4 +17,5 @@
 	<string name="value_button_b">Start</string>
 	<string name="value_button_s">Stop</string>
 	<string name="receiving_label">Receiving&#8230;</string>
+	<string name="view_file_label">View File</string>
 </resources>
