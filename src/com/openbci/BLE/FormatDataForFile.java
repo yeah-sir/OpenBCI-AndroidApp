@@ -13,4 +13,16 @@ public class FormatDataForFile {
 		
 		return sb.toString();
 	}
+	
+	public static String convertFloatArrayToString(float[] input){
+		StringBuilder sb = new StringBuilder();
+		int len = input.length;
+		
+		for(int i=0;i<len;i++){
+			sb.append(Float.toString(input[i]));
+			sb.append(", ");
+		}
+		
+		return sb.toString();
+	}
 }

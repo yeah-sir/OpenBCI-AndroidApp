@@ -43,7 +43,7 @@ public class MainActivity extends Activity implements LeScanCallback {
 	final private static byte[] STOP = {'s'};
 	
 	private String mFilenamePrefix = "openbci";
-	private String mExtention = ".txt";
+	private String mExtention = ".csv";
 	private String mFilenameSuffix = "";
 	private String mFilename = "openbci.txt"; //Default Filename
 	
@@ -143,8 +143,8 @@ public class MainActivity extends Activity implements LeScanCallback {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-
-		mFilename = getFileNameForSession();
+		
+		//mFilename = getFileNameForSession();
 		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
 		// Bluetooth
@@ -275,7 +275,12 @@ public class MainActivity extends Activity implements LeScanCallback {
 				mViewFileButton.setEnabled(true);
 			}
 		});
+	}
+
+	protected void onStart() {
+		super.onStart();
 		
+		mFilename = getFileNameForSession();
 		mViewFileButton.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
@@ -286,10 +291,6 @@ public class MainActivity extends Activity implements LeScanCallback {
 				startActivity(openTextFileIntent);
 			}
 		});
-	}
-
-	protected void onStart() {
-		super.onStart();
 
 		registerReceiver(scanModeReceiver, new IntentFilter(
 				BluetoothAdapter.ACTION_SCAN_MODE_CHANGED));
