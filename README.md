@@ -2,7 +2,7 @@ OpenBCI-AndroidApp
 ==================
 This Android application demonstrates the capability of interfacing an RFduino with an Android app to store processed data (as comma separated values) received from the RFduino onto a file on the file system.
 
-This work is based off the work done by Lann Martin found here: https://github.com/lann/RFDuinoTest 
+This work is based on the work done by Lann Martin found here: https://github.com/lann/RFDuinoTest 
 
 Description
 =================
