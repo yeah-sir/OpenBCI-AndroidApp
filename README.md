@@ -7,11 +7,17 @@ This work is based off the work done by Lann Martin found here: https://github.c
 Description
 ===========
 MainActivity: the main activity class for the Android app
+
 SaveBytesToFile: an AsyncTask to store processed data onto a file
+
 RFduinoService: Android service to connect, display data, and display GATT services and characteristics supported by the RFduino via the Android BLE API
+
 OpenBCIDataConversion: helper class to convert byte data received from RFduino into microvolt values
+
 FormatDataForFile: helper class to convert the process data into comma separated values
+
 BluetoothHelper: RFduino specific Bluetooth computation
+
 HexAsciiHelper: helper class to convert bytes to hex/ASCII values
 
 Usage
