@@ -1,3 +1,7 @@
+/* Copyright (c) 2014 OpenBCI
+ * See the file license.txt for copying permission.
+ * */
+
 package com.openbci.BLE;
 
 import java.io.File;
@@ -34,19 +38,21 @@ import android.widget.TextView;
 public class MainActivity extends Activity implements LeScanCallback {
 
 	private final String TAG = MainActivity.class.getSimpleName();
+	
 	// Bluetooth State
 	final private static int STATE_BLUETOOTH_OFF = 1;
 	final private static int STATE_DISCONNECTED = 2;
 	final private static int STATE_CONNECTING = 3;
 	final private static int STATE_CONNECTED = 4;
-	final private static byte[] START = {'b'};
-	final private static byte[] STOP = {'s'};
-	
+	final private static byte[] START = { 'b' };
+	final private static byte[] STOP = { 's' };
+
+	// Filename for each session
 	private String mFilenamePrefix = "openbci";
 	private String mExtention = ".csv";
 	private String mFilenameSuffix = "";
-	private String mFilename = "openbci.txt"; //Default Filename
-	
+	private String mFilename = "openbci.txt"; // Default Filename
+
 	private int mBluetoothState;
 	private boolean mScanStarted;
 	private boolean mScanning;
@@ -68,10 +74,12 @@ public class MainActivity extends Activity implements LeScanCallback {
 	private ProgressBar mProgressBar;
 	private TextView mReceiving;
 	private Button mViewFileButton;
-	
+
 	private Intent openTextFileIntent = new Intent(Intent.ACTION_VIEW);
-	private File directory = new File(Environment.getExternalStorageDirectory(),"OpenBCI");
-	
+	private File directory = new File(
+			Environment.getExternalStorageDirectory(), "OpenBCI");
+
+	// Broadcast receiver to monitor BLE connection
 	private final BroadcastReceiver bluetoothStateReceiver = new BroadcastReceiver() {
 
 		@Override
@@ -87,8 +95,8 @@ public class MainActivity extends Activity implements LeScanCallback {
 		}
 	};
 
+	// BroadcastReceiver to receive Bluetooth scan intents
 	private final BroadcastReceiver scanModeReceiver = new BroadcastReceiver() {
-
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			mScanning = (mBluetoothAdapter.getScanMode() != BluetoothAdapter.SCAN_MODE_NONE);
@@ -97,8 +105,8 @@ public class MainActivity extends Activity implements LeScanCallback {
 		}
 	};
 
+	// BroadcastReceiver to receive data from RFduino intenets
 	private final BroadcastReceiver rfduinoReceiver = new BroadcastReceiver() {
-
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			final String action = intent.getAction();
@@ -111,14 +119,16 @@ public class MainActivity extends Activity implements LeScanCallback {
 						.getByteArrayExtra(RFduinoService.EXTRA_DATA);
 				byte[] packetData = Arrays.copyOfRange(data, 1, data.length);
 				int packetNumber = data[0] & 0xFF;
-				Log.i(TAG, "RFduino Data: " +packetNumber + ": " +FormatDataForFile.convertBytesToHex(packetData));
-				byte[][] dataForAsyncTask = {mFilename.getBytes(), data};
+				Log.i(TAG, "RFduino Data: " + packetNumber + ": "
+						+ FormatDataForFile.convertBytesToHex(packetData));
+				byte[][] dataForAsyncTask = { mFilename.getBytes(), data };
 				new SaveBytesToFile().execute(dataForAsyncTask);
 			}
 
 		}
 	};
 
+	// ServiceConnection to monitor connections with the RFduino
 	private final ServiceConnection rfduinoServiceConnection = new ServiceConnection() {
 
 		@Override
@@ -143,11 +153,10 @@ public class MainActivity extends Activity implements LeScanCallback {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		
-		//mFilename = getFileNameForSession();
+
 		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-		// Bluetooth
+		// Bluetooth Button
 		mEnableBluetoothButton = (Button) findViewById(R.id.enableBluetooth);
 		mEnableBluetoothButton.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -248,12 +257,14 @@ public class MainActivity extends Activity implements LeScanCallback {
 						.getBytes());
 			}
 		});
-		
+
+		// ProgressBar
 		mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
 		mReceiving = (TextView) findViewById(R.id.receivingLabel);
-		mStartButton = (Button) findViewById(R.id.startButton);
 		mViewFileButton = (Button) findViewById(R.id.viewFileButton);
-		
+
+		// Button to send "b" to the RFduino to begin data transfer
+		mStartButton = (Button) findViewById(R.id.startButton);
 		mStartButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -261,12 +272,13 @@ public class MainActivity extends Activity implements LeScanCallback {
 				mReceiving.setVisibility(View.VISIBLE);
 				mProgressBar.setVisibility(View.VISIBLE);
 			}
-			
+
 		});
-		
+
+		// Button to send "s" to the RFduino to begin data transfer
 		mStopButton = (Button) findViewById(R.id.stopButton);
 		mStopButton.setOnClickListener(new View.OnClickListener() {
-			
+
 			@Override
 			public void onClick(View v) {
 				mReceiving.setVisibility(View.INVISIBLE);
@@ -279,15 +291,17 @@ public class MainActivity extends Activity implements LeScanCallback {
 
 	protected void onStart() {
 		super.onStart();
-		
+
+		// Get filename for each session
 		mFilename = getFileNameForSession();
+		// Button to view the data file for current session
 		mViewFileButton.setOnClickListener(new View.OnClickListener() {
-			
+
 			@Override
 			public void onClick(View v) {
 				Uri uri = Uri.fromFile(new File(directory, mFilename));
 				openTextFileIntent.setDataAndType(uri, "text/plain");
-				//openTextFileIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); 
+				// openTextFileIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				startActivity(openTextFileIntent);
 			}
 		});
@@ -312,7 +326,7 @@ public class MainActivity extends Activity implements LeScanCallback {
 		unregisterReceiver(bluetoothStateReceiver);
 		unregisterReceiver(rfduinoReceiver);
 	}
-	
+
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -339,7 +353,6 @@ public class MainActivity extends Activity implements LeScanCallback {
 	private void updateUi() {
 		// Enable Bluetooth
 		boolean on = mBluetoothState > STATE_BLUETOOTH_OFF;
-		// mEnableBluetoothButton.setEnabled(!on);
 		mEnableBluetoothButton.setText(on ? "Disable Bluetooth"
 				: "Enable Bluetooth");
 		mScanButton.setEnabled(on);
@@ -378,15 +391,18 @@ public class MainActivity extends Activity implements LeScanCallback {
 
 	}
 
-	private String getFileNameForSession(){
+	// Calculate filename for session
+	private String getFileNameForSession() {
 		directory.mkdir();
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.getDefault());
+		SimpleDateFormat formatter = new SimpleDateFormat(
+				"yyyy_MM_dd_HH_mm_ss", Locale.getDefault());
 		Date now = new Date();
 		mFilenameSuffix = formatter.format(now);
-		String filename = mFilenamePrefix+formatter.format(now)+mExtention;
+		String filename = mFilenamePrefix + mFilenameSuffix + mExtention;
 		return filename;
 	}
-	
+
+	// Bluetooth callback method used to deliver LE scan results
 	@Override
 	public void onLeScan(BluetoothDevice device, final int rssi,
 			final byte[] scanRecord) {

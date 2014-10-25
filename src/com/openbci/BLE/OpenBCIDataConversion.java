@@ -1,3 +1,6 @@
+/* Copyright (c) 2014 OpenBCI
+ * See the file license.txt for copying permission.
+ * */
 package com.openbci.BLE;
 
 public class OpenBCIDataConversion {
