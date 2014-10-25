@@ -22,7 +22,7 @@ HexAsciiHelper: helper class to convert bytes to hex/ASCII values
 
 Usage
 =====
--	Turn on the Bluetooth using the “Enable Bluetooth" button
+-Turn on the Bluetooth using the “Enable Bluetooth" button
 
 -Press “Scan” to begin a BLE scan for GATT servers on devices
 
